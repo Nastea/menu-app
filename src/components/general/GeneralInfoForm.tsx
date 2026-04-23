@@ -6,10 +6,12 @@ import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Toggle } from "@/components/ui/Toggle";
 import { EventScheduleFields } from "@/components/general/EventScheduleFields";
+import { EventDateCalendar } from "@/components/general/EventDateCalendar";
 import { getDecorSummaryLines } from "@/lib/decorSummary";
 
 type Props = {
   state: EventFormState;
+  markedEventDates: string[];
   updateField: <K extends keyof EventFormState>(key: K, value: EventFormState[K]) => void;
   setRestaurantAndSeedMenu: (restaurant: RestaurantId | "") => void;
   updateEventSchedule: (patch: Partial<EventSchedule>) => void;
@@ -17,6 +19,7 @@ type Props = {
 
 export function GeneralInfoForm({
   state,
+  markedEventDates,
   updateField,
   setRestaurantAndSeedMenu,
   updateEventSchedule,
@@ -58,6 +61,11 @@ export function GeneralInfoForm({
         label="Data"
         value={state.date}
         onChange={(e) => updateField("date", e.target.value)}
+      />
+      <EventDateCalendar
+        value={state.date}
+        markedDates={markedEventDates}
+        onSelectDate={(nextDate) => updateField("date", nextDate)}
       />
       <Input
         label="Client"

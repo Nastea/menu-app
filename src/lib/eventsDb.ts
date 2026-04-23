@@ -276,6 +276,30 @@ export async function upsertEventByKey(
   return { error: null };
 }
 
+export async function deleteEventByKey(
+  client: SupabaseClient,
+  eventKey: string,
+): Promise<{ error: Error | null }> {
+  const { error } = await client.from("events").delete().eq("event_key", eventKey);
+  if (error) return { error: new Error(error.message) };
+  return { error: null };
+}
+
+export async function listEventDatesByRestaurant(
+  client: SupabaseClient,
+  restaurant: RestaurantId,
+): Promise<{ dates: string[]; error: Error | null }> {
+  const { data, error } = await client
+    .from("events")
+    .select("event_date")
+    .eq("restaurant", restaurant)
+    .order("event_date", { ascending: true });
+  if (error) return { dates: [], error: new Error(error.message) };
+
+  const unique = Array.from(new Set((data ?? []).map((row) => String(row.event_date))));
+  return { dates: unique, error: null };
+}
+
 /** Minim pentru autosave: dată, restaurant, sală dacă e Voyage. */
 export function canPersistEvent(state: EventFormState): boolean {
   if (!state.date?.trim()) return false;

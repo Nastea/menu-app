@@ -38,6 +38,7 @@ export function AppShell({ form, persistence }: Props) {
       <aside className="flex min-w-0 w-full flex-col gap-4 lg:col-span-3">
         <GeneralInfoForm
           state={state}
+          markedEventDates={persistence.markedEventDates}
           updateField={updateField}
           setRestaurantAndSeedMenu={setRestaurantAndSeedMenu}
           updateEventSchedule={updateEventSchedule}
