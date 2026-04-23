@@ -12,6 +12,11 @@ export function TotalsCard({ state }: Props) {
   const {
     menuPerAdult,
     menuTotal,
+    menuPerChild,
+    childrenTotal,
+    menuPerStaff,
+    staffTotal,
+    childrenSpecialTotal,
     mainMenuServiceFeePercent,
     mainMenuServiceFeeTotal,
     coffeeTotal,
@@ -34,6 +39,16 @@ export function TotalsCard({ state }: Props) {
         <dd className="text-right font-medium">{formatMoney(menuPerAdult)}</dd>
         <dt className="text-zinc-500">Meniu total</dt>
         <dd className="text-right font-medium">{formatMoney(menuTotal)}</dd>
+        <dt className="text-zinc-500">Meniu / copil (50%)</dt>
+        <dd className="text-right">{formatMoney(menuPerChild)}</dd>
+        <dt className="text-zinc-500">Copii total</dt>
+        <dd className="text-right">{formatMoney(childrenTotal)}</dd>
+        <dt className="text-zinc-500">Meniu / staff (50%)</dt>
+        <dd className="text-right">{formatMoney(menuPerStaff)}</dd>
+        <dt className="text-zinc-500">Staff total</dt>
+        <dd className="text-right">{formatMoney(staffTotal)}</dd>
+        <dt className="text-zinc-500">Copii special (350 MDL)</dt>
+        <dd className="text-right">{formatMoney(childrenSpecialTotal)}</dd>
         <dt className="text-zinc-500">
           Taxă meniu principal ({Math.round(mainMenuServiceFeePercent * 100)}%)
         </dt>
@@ -57,7 +72,10 @@ export function TotalsCard({ state }: Props) {
         <dt className="text-zinc-500">Avans total</dt>
         <dd className="text-right">{formatMoney(advancesTotal)}</dd>
         <dt className="text-zinc-500">Rest de achitat</dt>
-        <dd className="text-right font-semibold">{formatMoney(remaining)}</dd>
+        <dd className="text-right font-semibold">
+          {formatMoney(remaining)}
+          {decorInternalEuro > 0 ? ` + ${formatEuro(decorInternalEuro)}` : ""}
+        </dd>
       </dl>
       <p className="text-xs text-zinc-500">
         Totaluri live în MDL, calculate din selecțiile curente.

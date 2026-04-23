@@ -43,6 +43,10 @@ export function MenuSelection({ state, addMenuItem, updateMenuItem }: Props) {
           editare / ștergere inline. Itemii nu sunt limitați la seed — seed-ul doar
           preîncarcă exemple. Meniul Voyage e același pentru Isadora și Oliva.
         </p>
+        <p className="mt-1 text-xs text-zinc-500">
+          Copii special: preț fix <strong>350 MDL / porție</strong> · porții setate:{" "}
+          <strong>{state.childrenSpecial || 0}</strong>.
+        </p>
       </div>
 
       {!state.restaurant ? (
