@@ -3,8 +3,6 @@
 import { useMemo, useState } from "react";
 import type { EventFormState } from "@/types/event";
 import type { EditableMenuItem } from "@/types/menu";
-import { Input } from "@/components/ui/Input";
-import { Toggle } from "@/components/ui/Toggle";
 import { Button } from "@/components/ui/Button";
 
 type Props = {
@@ -15,10 +13,9 @@ type Props = {
     itemId: string,
     patch: Partial<EditableMenuItem>,
   ) => void;
-  removeMenuItem: (categoryId: string, itemId: string) => void;
 };
 
-export function MenuSelection({ state, addMenuItem, updateMenuItem, removeMenuItem }: Props) {
+export function MenuSelection({ state, addMenuItem, updateMenuItem }: Props) {
   const [expandedCategoryIds, setExpandedCategoryIds] = useState<Record<string, boolean>>({});
   const effectiveExpanded = useMemo(
     () =>
@@ -85,67 +82,90 @@ export function MenuSelection({ state, addMenuItem, updateMenuItem, removeMenuIt
               {cat.items.length === 0 ? (
                 <p className="text-xs text-zinc-500">Niciun item — folosește „+ Item”.</p>
               ) : (
-                cat.items.map((item) => (
-                  <div
-                    key={item.id}
-                    className="grid gap-2 rounded-lg bg-zinc-100/70 p-2 sm:grid-cols-2 dark:bg-zinc-900/60"
-                  >
-                    <div className="flex items-center gap-2 sm:col-span-2">
-                      <Toggle
-                        label="Selectat"
-                        checked={item.selected}
-                        onCheckedChange={(v) => updateMenuItem(cat.id, item.id, { selected: v })}
-                      />
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        className="ml-auto text-xs text-red-600 dark:text-red-400"
-                        onClick={() => removeMenuItem(cat.id, item.id)}
-                      >
-                        Șterge item
-                      </Button>
-                    </div>
-                    <Input
-                      label="Denumire"
-                      value={item.name}
-                      onChange={(e) => updateMenuItem(cat.id, item.id, { name: e.target.value })}
-                    />
-                    <Input
-                      label="Gramaj / cantitate"
-                      value={item.quantityOrWeight}
-                      onChange={(e) =>
-                        updateMenuItem(cat.id, item.id, { quantityOrWeight: e.target.value })
-                      }
-                    />
-                    <Input
-                      type="number"
-                      min={0}
-                      label="Preț adult (MDL)"
-                      value={item.adultPrice || ""}
-                      onChange={(e) =>
-                        updateMenuItem(cat.id, item.id, {
-                          adultPrice: Number(e.target.value) || 0,
-                        })
-                      }
-                    />
-                    <div className="flex flex-wrap gap-4 sm:col-span-2">
-                      <Toggle
-                        label="KIDS"
-                        checked={item.kidsIncluded}
-                        onCheckedChange={(v) =>
-                          updateMenuItem(cat.id, item.id, { kidsIncluded: v })
-                        }
-                      />
-                      <Toggle
-                        label="STAFF"
-                        checked={item.staffIncluded}
-                        onCheckedChange={(v) =>
-                          updateMenuItem(cat.id, item.id, { staffIncluded: v })
-                        }
-                      />
-                    </div>
-                  </div>
-                ))
+                <div className="overflow-x-auto rounded-md border border-zinc-200 dark:border-zinc-700">
+                  <table className="min-w-full text-xs">
+                    <thead className="bg-zinc-100/90 text-zinc-600 dark:bg-zinc-900/70 dark:text-zinc-300">
+                      <tr>
+                        <th className="w-12 px-2 py-2 text-center">Sel.</th>
+                        <th className="min-w-[16rem] px-2 py-2 text-left">Fel</th>
+                        <th className="min-w-[8rem] px-2 py-2 text-left">Gramaj</th>
+                        <th className="w-28 px-2 py-2 text-left">Preț MDL</th>
+                        <th className="w-16 px-2 py-2 text-center">K</th>
+                        <th className="w-16 px-2 py-2 text-center">S</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {cat.items.map((item) => (
+                        <tr
+                          key={item.id}
+                          className="border-t border-zinc-200 bg-white/90 dark:border-zinc-800 dark:bg-zinc-950/40"
+                        >
+                          <td className="px-2 py-1.5 text-center">
+                            <input
+                              type="checkbox"
+                              checked={item.selected}
+                              aria-label={`Selectează ${item.name || "fel"}`}
+                              onChange={(e) =>
+                                updateMenuItem(cat.id, item.id, { selected: e.target.checked })
+                              }
+                            />
+                          </td>
+                          <td className="px-2 py-1.5">
+                            <input
+                              className="w-full rounded border border-zinc-300 bg-background px-2 py-1 dark:border-zinc-600"
+                              value={item.name}
+                              onChange={(e) =>
+                                updateMenuItem(cat.id, item.id, { name: e.target.value })
+                              }
+                            />
+                          </td>
+                          <td className="px-2 py-1.5">
+                            <input
+                              className="w-full rounded border border-zinc-300 bg-background px-2 py-1 dark:border-zinc-600"
+                              value={item.quantityOrWeight}
+                              onChange={(e) =>
+                                updateMenuItem(cat.id, item.id, { quantityOrWeight: e.target.value })
+                              }
+                            />
+                          </td>
+                          <td className="px-2 py-1.5">
+                            <input
+                              type="number"
+                              min={0}
+                              className="w-full rounded border border-zinc-300 bg-background px-2 py-1 dark:border-zinc-600"
+                              value={item.adultPrice || ""}
+                              onChange={(e) =>
+                                updateMenuItem(cat.id, item.id, {
+                                  adultPrice: Number(e.target.value) || 0,
+                                })
+                              }
+                            />
+                          </td>
+                          <td className="px-2 py-1.5 text-center">
+                            <input
+                              type="checkbox"
+                              checked={item.kidsIncluded}
+                              aria-label={`Kids pentru ${item.name || "fel"}`}
+                              onChange={(e) =>
+                                updateMenuItem(cat.id, item.id, { kidsIncluded: e.target.checked })
+                              }
+                            />
+                          </td>
+                          <td className="px-2 py-1.5 text-center">
+                            <input
+                              type="checkbox"
+                              checked={item.staffIncluded}
+                              aria-label={`Staff pentru ${item.name || "fel"}`}
+                              onChange={(e) =>
+                                updateMenuItem(cat.id, item.id, { staffIncluded: e.target.checked })
+                              }
+                            />
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               )}
             </div>
           </div>

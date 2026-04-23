@@ -9,6 +9,8 @@ import { getBlankEventFormState } from "@/lib/eventFormDefaults";
 import { getSeedMenuCategories } from "@/lib/initialMenu";
 import { createEmptyMenuItem } from "@/lib/menuItemFactory";
 import { newId } from "@/lib/newId";
+import { getSupabaseBrowserClient } from "@/lib/supabase";
+import { loadMasterMenu } from "@/lib/masterMenuDb";
 
 export type UseEventFormReturn = {
   state: EventFormState;
@@ -39,6 +41,14 @@ export function useEventForm(): UseEventFormReturn {
         if (key === "serviceMode" && value === "external") {
           next.voyageHall = "";
         }
+        if (key === "adults") {
+          const nextAdults = Number(value) || 0;
+          const fruitWasAutoSynced =
+            prev.fruitPlatterPortions === prev.adults || prev.fruitPlatterPortions === 0;
+          if (fruitWasAutoSynced) {
+            next.fruitPlatterPortions = nextAdults;
+          }
+        }
         return next;
       });
     },
@@ -52,6 +62,20 @@ export function useEventForm(): UseEventFormReturn {
       voyageHall: restaurant === "voyage" ? prev.voyageHall : "",
       menuCategories: restaurant ? getSeedMenuCategories(restaurant) : [],
     }));
+
+    if (!restaurant) return;
+
+    void (async () => {
+      const client = getSupabaseBrowserClient();
+      if (!client) return;
+      const { categories, error } = await loadMasterMenu(client, restaurant);
+      if (error || !categories || categories.length === 0) return;
+
+      setState((prev) => {
+        if (prev.restaurant !== restaurant) return prev;
+        return { ...prev, menuCategories: categories };
+      });
+    })();
   }, []);
 
   const updateEventSchedule = useCallback((patch: Partial<EventSchedule>) => {

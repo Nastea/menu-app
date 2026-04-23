@@ -2,24 +2,25 @@
 
 import { useEffect, useState } from "react";
 import type { SupabasePersistenceApi } from "@/hooks/useSupabaseEventSync";
+import type { EventFormState } from "@/types/event";
 import { Button } from "@/components/ui/Button";
+import { PRINT_SNAPSHOT_KEY } from "@/lib/printReport";
 
 type Props = {
+  state: EventFormState;
   persistence: Pick<
     SupabasePersistenceApi,
     | "currentKey"
     | "hasClient"
-    | "loadLine"
     | "autosaveLine"
-    | "saveNow"
     | "deleteCurrentEvent"
     | "canDeleteCurrent"
     | "isWorking"
   >;
 };
 
-export function EventPersistenceBar({ persistence }: Props) {
-  const { currentKey, hasClient, loadLine, autosaveLine, saveNow, deleteCurrentEvent, canDeleteCurrent, isWorking } =
+export function EventPersistenceBar({ state, persistence }: Props) {
+  const { currentKey, hasClient, autosaveLine, deleteCurrentEvent, canDeleteCurrent, isWorking } =
     persistence;
   const [deleteArmed, setDeleteArmed] = useState(false);
 
@@ -38,19 +39,13 @@ export function EventPersistenceBar({ persistence }: Props) {
     await deleteCurrentEvent();
   };
 
+  const onPrintDocument = () => {
+    window.localStorage.setItem(PRINT_SNAPSHOT_KEY, JSON.stringify(state));
+    window.open("/print-report", "_blank", "noopener,noreferrer");
+  };
+
   return (
-    <div className="flex flex-col gap-1.5 rounded-lg border border-zinc-300 bg-zinc-50 p-3 text-sm dark:border-zinc-600 dark:bg-zinc-900/40">
-      <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-        <span className="font-semibold text-zinc-800 dark:text-zinc-100">event_key</span>
-        <span className="font-mono text-xs text-zinc-700 dark:text-zinc-300">
-          {currentKey ?? "— (incomplet: restaurant + dată + sală pentru Voyage)"}
-        </span>
-      </div>
-
-      {loadLine ? (
-        <p className="text-xs text-zinc-500 dark:text-zinc-400">{loadLine}</p>
-      ) : null}
-
+    <div className="no-print flex flex-col gap-1.5 rounded-lg border border-zinc-300 bg-zinc-50 p-3 text-sm dark:border-zinc-600 dark:bg-zinc-900/40">
       {autosaveLine ? (
         <p
           className={
@@ -64,9 +59,6 @@ export function EventPersistenceBar({ persistence }: Props) {
       ) : null}
 
       <div className="mt-1 flex flex-wrap gap-2">
-        <Button variant="primary" className="py-1.5 text-xs" disabled={!hasClient || isWorking} onClick={() => void saveNow()}>
-          Salvează
-        </Button>
         <Button
           variant={deleteArmed ? "primary" : "secondary"}
           className="py-1.5 text-xs"
@@ -75,9 +67,15 @@ export function EventPersistenceBar({ persistence }: Props) {
         >
           {deleteArmed ? "Confirmă ștergerea" : "Șterge"}
         </Button>
-        <Button variant="secondary" className="py-1.5 text-xs" onClick={() => window.print()}>
+        <Button variant="secondary" className="py-1.5 text-xs" onClick={onPrintDocument}>
           Print
         </Button>
+        <a
+          href="/master-menu"
+          className="inline-flex items-center rounded-md border border-zinc-300 px-3 py-1.5 text-xs font-medium hover:bg-zinc-100 dark:border-zinc-600 dark:hover:bg-zinc-800"
+        >
+          Prețuri master menu
+        </a>
       </div>
 
       {!hasClient ? (

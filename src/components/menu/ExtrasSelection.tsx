@@ -4,6 +4,7 @@ import type { EventFormState } from "@/types/event";
 import type { CandyBarFourPicks } from "@/types/cateringExtras";
 import { CANDY_BAR_SLOT_COUNT } from "@/types/cateringExtras";
 import { CANDY_BAR_CATALOG } from "@/data/candy-bar-catalog";
+import { BAR_PACKAGES, NON_ALCOHOL_PACKAGES } from "@/data/bar-packages";
 import { SAVORY_PLATTER_STANDARD_LINES } from "@/data/savory-platter-standard";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
@@ -29,7 +30,7 @@ export function ExtrasSelection({ state, updateField }: Props) {
       <h2 className="text-sm font-semibold">Extra-uri</h2>
       <p className="text-xs text-zinc-500">
         Prețuri operaționale în MDL (unde aplică). Cafea: ON/OFF (calcul ulterior: adulți × 40
-        MDL). Furșet fructe: porții (formulă ulterioară).
+        MDL). Furșet fructe: porții (implicit = nr. adulți, editabil manual).
       </p>
 
       <div className="flex flex-col gap-2">
@@ -100,13 +101,54 @@ export function ExtrasSelection({ state, updateField }: Props) {
         <Toggle
           label="Bar"
           checked={state.barEnabled}
-          onCheckedChange={(v) => updateField("barEnabled", v)}
+          onCheckedChange={(v) => {
+            updateField("barEnabled", v);
+            if (!v) updateField("barPackageId", "");
+            if (v && !state.barPackageId) updateField("barPackageId", BAR_PACKAGES[0].id);
+          }}
         />
+        <Select
+          label="Pachet cocktail bar"
+          value={state.barPackageId}
+          disabled={!state.barEnabled}
+          onChange={(e) => updateField("barPackageId", e.target.value as EventFormState["barPackageId"])}
+        >
+          <option value="">— alege pachet —</option>
+          {BAR_PACKAGES.map((p) => (
+            <option key={p.id} value={p.id}>
+              {p.label} · {p.totalShots} shot-uri · {p.totalPriceMdl} MDL
+            </option>
+          ))}
+        </Select>
         <Toggle
           label="Non-alcool"
           checked={state.nonAlcoholEnabled}
-          onCheckedChange={(v) => updateField("nonAlcoholEnabled", v)}
+          onCheckedChange={(v) => {
+            updateField("nonAlcoholEnabled", v);
+            if (!v) updateField("nonAlcoholPackageId", "");
+            if (v && !state.nonAlcoholPackageId) {
+              updateField("nonAlcoholPackageId", NON_ALCOHOL_PACKAGES[0].id);
+            }
+          }}
         />
+        <Select
+          label="Pachet non-alcoolic"
+          value={state.nonAlcoholPackageId}
+          disabled={!state.nonAlcoholEnabled}
+          onChange={(e) =>
+            updateField(
+              "nonAlcoholPackageId",
+              e.target.value as EventFormState["nonAlcoholPackageId"],
+            )
+          }
+        >
+          <option value="">— alege pachet —</option>
+          {NON_ALCOHOL_PACKAGES.map((p) => (
+            <option key={p.id} value={p.id}>
+              {p.label} · {p.totalLiters} pahare · {p.totalPriceMdl} MDL
+            </option>
+          ))}
+        </Select>
       </div>
 
       <div className="flex flex-col gap-3">

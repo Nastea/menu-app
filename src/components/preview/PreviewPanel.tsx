@@ -3,8 +3,11 @@
 import type { EventFormState } from "@/types/event";
 import { Toggle } from "@/components/ui/Toggle";
 import { getCandyBarPastryLabel } from "@/data/candy-bar-catalog";
+import { getBarPackageLabel, getNonAlcoholPackageLabel } from "@/data/bar-packages";
 import { SAVORY_PLATTER_STANDARD_LINES } from "@/data/savory-platter-standard";
+import { computeTotals, getSelectedMenuItems } from "@/lib/calculations";
 import { getDecorSummaryLines } from "@/lib/decorSummary";
+import { formatMoney } from "@/lib/format";
 
 type Props = {
   state: EventFormState;
@@ -13,6 +16,8 @@ type Props = {
 
 export function PreviewPanel({ state, updateField }: Props) {
   const decorLines = getDecorSummaryLines(state);
+  const selectedMenuItems = getSelectedMenuItems(state);
+  const { menuPerAdult, menuTotal, total, mainMenuServiceFeeTotal, cardFeeTotal } = computeTotals(state);
 
   return (
     <section className="flex flex-col gap-3 rounded-xl bg-zinc-50/70 p-4 dark:bg-zinc-900/40">
@@ -69,6 +74,37 @@ export function PreviewPanel({ state, updateField }: Props) {
         </div>
 
         <div>
+          <p className="font-semibold text-zinc-900 dark:text-zinc-100">Meniu selectat</p>
+          {selectedMenuItems.length === 0 ? (
+            <p className="text-zinc-500">Niciun fel selectat.</p>
+          ) : (
+            <div className="mt-1 space-y-1 text-zinc-600 dark:text-zinc-400">
+              <ul className="list-inside list-disc">
+                {selectedMenuItems.map((item) => (
+                  <li key={item.itemId}>
+                    {item.categoryName}: {item.itemName || "Fără denumire"}{" "}
+                    {item.quantityOrWeight ? `(${item.quantityOrWeight})` : ""} —{" "}
+                    {formatMoney(item.adultPrice || 0)}
+                  </li>
+                ))}
+              </ul>
+              <p>
+                Total meniu / adult:{" "}
+                <span className="font-medium text-zinc-800 dark:text-zinc-200">
+                  {formatMoney(menuPerAdult)}
+                </span>
+              </p>
+              <p>
+                Total meniu ({state.adults || 0} adulți):{" "}
+                <span className="font-medium text-zinc-800 dark:text-zinc-200">
+                  {formatMoney(menuTotal)}
+                </span>
+              </p>
+            </div>
+          )}
+        </div>
+
+        <div>
           <p className="font-semibold text-zinc-900 dark:text-zinc-100">Candy Bar</p>
           {state.candyBar.enabled ? (
             <div className="mt-1 space-y-1 text-zinc-600 dark:text-zinc-400">
@@ -117,14 +153,42 @@ export function PreviewPanel({ state, updateField }: Props) {
             Bar: {state.barEnabled ? "DA" : "NU"} · Non-alcool:{" "}
             {state.nonAlcoholEnabled ? "DA" : "NU"}
           </p>
+          {state.barEnabled ? (
+            <p className="text-zinc-600 dark:text-zinc-400">
+              Pachet bar: {getBarPackageLabel(state.barPackageId)}
+            </p>
+          ) : null}
+          {state.nonAlcoholEnabled ? (
+            <p className="text-zinc-600 dark:text-zinc-400">
+              Pachet non-alcoolic: {getNonAlcoholPackageLabel(state.nonAlcoholPackageId)}
+            </p>
+          ) : null}
         </div>
 
         <div>
-          <p className="font-semibold text-zinc-900 dark:text-zinc-100">Cafeă & furșet fructe</p>
+          <p className="font-semibold text-zinc-900 dark:text-zinc-100">Cafea & furșet fructe</p>
           <p className="text-zinc-600 dark:text-zinc-400">
             Cafea: {state.coffeeEnabled ? "DA" : "NU"} · Furșet fructe porții:{" "}
             {state.fruitPlatterPortions || "—"}
           </p>
+        </div>
+
+        <div>
+          <p className="font-semibold text-zinc-900 dark:text-zinc-100">Total estimat</p>
+          <p className="text-zinc-600 dark:text-zinc-400">
+            Total curent:{" "}
+            <span className="font-medium text-zinc-800 dark:text-zinc-200">{formatMoney(total)}</span>
+          </p>
+          {mainMenuServiceFeeTotal > 0 ? (
+            <p className="text-zinc-600 dark:text-zinc-400">
+              Taxă meniu principal: {formatMoney(mainMenuServiceFeeTotal)}
+            </p>
+          ) : null}
+          {cardFeeTotal > 0 ? (
+            <p className="text-zinc-600 dark:text-zinc-400">
+              Comision card: {formatMoney(cardFeeTotal)}
+            </p>
+          ) : null}
         </div>
       </div>
     </section>

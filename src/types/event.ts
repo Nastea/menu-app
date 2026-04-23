@@ -1,4 +1,5 @@
 import type { CandyBarFormState, SavoryPlatterFormState } from "./cateringExtras";
+import type { BarPackageId, NonAlcoholPackageId } from "@/data/bar-packages";
 import type { MenuCategory, RestaurantId, VoyageHallId } from "./menu";
 
 /**
@@ -74,7 +75,13 @@ export type EventFormState = {
   candyBar: CandyBarFormState;
   savoryPlatter: SavoryPlatterFormState;
   barEnabled: boolean;
+  barPackageId: BarPackageId | "";
   nonAlcoholEnabled: boolean;
+  nonAlcoholPackageId: NonAlcoholPackageId | "";
+  /** +2% pentru plată cu card (din totalul curent). */
+  paymentByCard: boolean;
+  /** Taxă opțională meniu principal: Tesalia 10% / Voyage 5%. */
+  mainMenuServiceFeeEnabled: boolean;
   previewKids: boolean;
   previewStaff: boolean;
   notes: NoteLine[];

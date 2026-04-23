@@ -7,6 +7,7 @@ import { MenuSelection } from "@/components/menu/MenuSelection";
 import { ExtrasSelection } from "@/components/menu/ExtrasSelection";
 import { PreviewPanel } from "@/components/preview/PreviewPanel";
 import { NotesEditor } from "@/components/preview/NotesEditor";
+import { AdvancesCard } from "@/components/totals/AdvancesCard";
 import { TotalsCard } from "@/components/totals/TotalsCard";
 import { EventPersistenceBar } from "@/components/persistence/EventPersistenceBar";
 
@@ -23,7 +24,6 @@ export function AppShell({ form, persistence }: Props) {
     updateEventSchedule,
     addMenuItem,
     updateMenuItem,
-    removeMenuItem,
     addNoteLine,
     removeNoteLine,
     updateNoteLineText,
@@ -31,11 +31,8 @@ export function AppShell({ form, persistence }: Props) {
 
   return (
     <div className="mx-auto grid min-h-0 w-full min-w-0 max-w-[1600px] flex-1 grid-cols-1 gap-3 px-2 py-3 sm:gap-4 sm:px-4 sm:py-4 lg:grid-cols-12 lg:px-6">
-      <div className="min-w-0 lg:col-span-12">
-        <EventPersistenceBar persistence={persistence} />
-      </div>
-
-      <aside className="flex min-w-0 w-full flex-col gap-4 lg:col-span-3">
+      <div className="no-print flex min-w-0 w-full flex-col gap-4 lg:col-span-9">
+        <EventPersistenceBar state={state} persistence={persistence} />
         <GeneralInfoForm
           state={state}
           markedEventDates={persistence.markedEventDates}
@@ -43,19 +40,15 @@ export function AppShell({ form, persistence }: Props) {
           setRestaurantAndSeedMenu={setRestaurantAndSeedMenu}
           updateEventSchedule={updateEventSchedule}
         />
-      </aside>
-
-      <main className="flex min-w-0 w-full flex-col gap-4 lg:col-span-6">
         <MenuSelection
           state={state}
           addMenuItem={addMenuItem}
           updateMenuItem={updateMenuItem}
-          removeMenuItem={removeMenuItem}
         />
         <ExtrasSelection state={state} updateField={updateField} />
-      </main>
+      </div>
 
-      <aside className="flex min-w-0 w-full flex-col gap-4 lg:col-span-3">
+      <aside className="print-report flex min-w-0 w-full flex-col gap-4 lg:col-span-3">
         <div className="flex min-w-0 w-full flex-col gap-4 lg:sticky lg:top-4">
           <PreviewPanel state={state} updateField={updateField} />
           <NotesEditor
@@ -64,6 +57,7 @@ export function AppShell({ form, persistence }: Props) {
             removeNoteLine={removeNoteLine}
             updateNoteLineText={updateNoteLineText}
           />
+          <AdvancesCard state={state} updateField={updateField} />
           <TotalsCard state={state} />
         </div>
       </aside>

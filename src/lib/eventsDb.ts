@@ -6,6 +6,7 @@ import type {
 } from "@/types/cateringExtras";
 import type { MenuCategory } from "@/types/menu";
 import type { RestaurantId, VoyageHallId } from "@/types/menu";
+import type { BarPackageId, NonAlcoholPackageId } from "@/data/bar-packages";
 import type {
   DecorSource,
   EventFormState,
@@ -55,7 +56,11 @@ export type EventsExtrasPayload = {
   candyBar: CandyBarFormState;
   savoryPlatter: SavoryPlatterFormState;
   barEnabled: boolean;
+  barPackageId: BarPackageId | "";
   nonAlcoholEnabled: boolean;
+  nonAlcoholPackageId: NonAlcoholPackageId | "";
+  paymentByCard: boolean;
+  mainMenuServiceFeeEnabled: boolean;
   previewKids: boolean;
   previewStaff: boolean;
 };
@@ -96,7 +101,11 @@ function defaultExtras(): EventsExtrasPayload {
     candyBar: initialCandyBarState(),
     savoryPlatter: initialSavoryPlatterState(),
     barEnabled: false,
+    barPackageId: "",
     nonAlcoholEnabled: false,
+    nonAlcoholPackageId: "",
+    paymentByCard: false,
+    mainMenuServiceFeeEnabled: false,
     previewKids: false,
     previewStaff: false,
   };
@@ -114,7 +123,14 @@ function parseExtras(raw: unknown): EventsExtrasPayload {
     candyBar: normalizeCandyBar(x.candyBar),
     savoryPlatter: normalizeSavory(x.savoryPlatter),
     barEnabled: Boolean(x.barEnabled),
+    barPackageId: typeof x.barPackageId === "string" ? (x.barPackageId as BarPackageId) : "",
     nonAlcoholEnabled: Boolean(x.nonAlcoholEnabled),
+    nonAlcoholPackageId:
+      typeof x.nonAlcoholPackageId === "string"
+        ? (x.nonAlcoholPackageId as NonAlcoholPackageId)
+        : "",
+    paymentByCard: Boolean(x.paymentByCard),
+    mainMenuServiceFeeEnabled: Boolean(x.mainMenuServiceFeeEnabled),
     previewKids: Boolean(x.previewKids),
     previewStaff: Boolean(x.previewStaff),
   };
@@ -169,7 +185,11 @@ export function eventFormStateToUpsertRow(
     candyBar: state.candyBar,
     savoryPlatter: state.savoryPlatter,
     barEnabled: state.barEnabled,
+    barPackageId: state.barPackageId,
     nonAlcoholEnabled: state.nonAlcoholEnabled,
+    nonAlcoholPackageId: state.nonAlcoholPackageId,
+    paymentByCard: state.paymentByCard,
+    mainMenuServiceFeeEnabled: state.mainMenuServiceFeeEnabled,
     previewKids: state.previewKids,
     previewStaff: state.previewStaff,
   };
@@ -224,7 +244,11 @@ export function eventsRowToEventFormState(row: EventsRow): EventFormState {
     candyBar: extras.candyBar ?? initialCandyBarState(),
     savoryPlatter: extras.savoryPlatter ?? initialSavoryPlatterState(),
     barEnabled: extras.barEnabled,
+    barPackageId: extras.barPackageId,
     nonAlcoholEnabled: extras.nonAlcoholEnabled,
+    nonAlcoholPackageId: extras.nonAlcoholPackageId,
+    paymentByCard: extras.paymentByCard,
+    mainMenuServiceFeeEnabled: extras.mainMenuServiceFeeEnabled,
     previewKids: extras.previewKids,
     previewStaff: extras.previewStaff,
     notes: parseNotes(row.notes),
