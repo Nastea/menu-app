@@ -17,13 +17,43 @@ type Props = {
 
 export function MenuSelection({ state, addMenuItem, updateMenuItem }: Props) {
   const [expandedCategoryIds, setExpandedCategoryIds] = useState<Record<string, boolean>>({});
+  const resolveSourceCategoryId = (itemId: string, fallbackCategoryId: string): string =>
+    state.menuCategories.find((sourceCat) =>
+      sourceCat.items.some((sourceItem) => sourceItem.id === itemId),
+    )?.id || fallbackCategoryId;
+  const displayCategories = useMemo(() => {
+    const specialItemPattern = /(sarmale|paine|mule)/i;
+    const specialItems: Array<{ categoryId: string; item: EditableMenuItem }> = [];
+    const regularCategories = state.menuCategories
+      .map((cat) => {
+        const regularItems = cat.items.filter((item) => {
+          const isSpecial = specialItemPattern.test(item.name);
+          if (isSpecial) specialItems.push({ categoryId: cat.id, item });
+          return !isSpecial;
+        });
+        return { ...cat, items: regularItems };
+      })
+      .filter((cat) => cat.items.length > 0);
+
+    if (specialItems.length === 0) return regularCategories;
+
+    return [
+      ...regularCategories,
+      {
+        id: "cat-final-specials",
+        name: "La final (Sarmale / Paine / Mule)",
+        items: specialItems.map((x) => x.item),
+      },
+    ];
+  }, [state.menuCategories]);
+
   const effectiveExpanded = useMemo(
     () =>
-      state.menuCategories.reduce<Record<string, boolean>>((acc, cat) => {
+      displayCategories.reduce<Record<string, boolean>>((acc, cat) => {
         acc[cat.id] = expandedCategoryIds[cat.id] ?? true;
         return acc;
       }, {}),
-    [expandedCategoryIds, state.menuCategories],
+    [displayCategories, expandedCategoryIds],
   );
 
   const toggleCategory = (categoryId: string) => {
@@ -54,7 +84,7 @@ export function MenuSelection({ state, addMenuItem, updateMenuItem }: Props) {
       ) : state.menuCategories.length === 0 ? (
         <p className="text-xs text-zinc-500">Nu există categorii în seed — adaugă în `data/`.</p>
       ) : (
-        state.menuCategories.map((cat) => (
+        displayCategories.map((cat) => (
           <div
             key={cat.id}
             className="flex flex-col gap-2 rounded-lg bg-white/80 p-3 dark:bg-zinc-950/40"
@@ -73,16 +103,18 @@ export function MenuSelection({ state, addMenuItem, updateMenuItem }: Props) {
             </button>
 
             <div className={effectiveExpanded[cat.id] ? "flex flex-col gap-3" : "hidden"}>
-              <div className="flex justify-end">
-                <Button
-                  type="button"
-                  variant="secondary"
-                  className="shrink-0 py-1 text-xs"
-                  onClick={() => addMenuItem(cat.id)}
-                >
-                  + Item în categorie
-                </Button>
-              </div>
+              {cat.id !== "cat-final-specials" ? (
+                <div className="flex justify-end">
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    className="shrink-0 py-1 text-xs"
+                    onClick={() => addMenuItem(cat.id)}
+                  >
+                    + Item în categorie
+                  </Button>
+                </div>
+              ) : null}
               {cat.items.length === 0 ? (
                 <p className="text-xs text-zinc-500">Niciun item — folosește „+ Item”.</p>
               ) : (
@@ -93,6 +125,8 @@ export function MenuSelection({ state, addMenuItem, updateMenuItem }: Props) {
                         <th className="w-12 px-2 py-2 text-center">Sel.</th>
                         <th className="min-w-[16rem] px-2 py-2 text-left">Fel</th>
                         <th className="min-w-[8rem] px-2 py-2 text-left">Gramaj</th>
+                        <th className="w-24 px-2 py-2 text-center">Porții</th>
+                        <th className="w-28 px-2 py-2 text-center">Masă</th>
                         <th className="w-28 px-2 py-2 text-left">Preț MDL</th>
                         <th className="w-16 px-2 py-2 text-center">K</th>
                         <th className="w-16 px-2 py-2 text-center">S</th>
@@ -110,7 +144,11 @@ export function MenuSelection({ state, addMenuItem, updateMenuItem }: Props) {
                               checked={item.selected}
                               aria-label={`Selectează ${item.name || "fel"}`}
                               onChange={(e) =>
-                                updateMenuItem(cat.id, item.id, { selected: e.target.checked })
+                                updateMenuItem(
+                                  resolveSourceCategoryId(item.id, cat.id),
+                                  item.id,
+                                  { selected: e.target.checked },
+                                )
                               }
                             />
                           </td>
@@ -119,7 +157,11 @@ export function MenuSelection({ state, addMenuItem, updateMenuItem }: Props) {
                               className="w-full rounded border border-zinc-300 bg-background px-2 py-1 dark:border-zinc-600"
                               value={item.name}
                               onChange={(e) =>
-                                updateMenuItem(cat.id, item.id, { name: e.target.value })
+                                updateMenuItem(
+                                  resolveSourceCategoryId(item.id, cat.id),
+                                  item.id,
+                                  { name: e.target.value },
+                                )
                               }
                             />
                           </td>
@@ -128,9 +170,42 @@ export function MenuSelection({ state, addMenuItem, updateMenuItem }: Props) {
                               className="w-full rounded border border-zinc-300 bg-background px-2 py-1 dark:border-zinc-600"
                               value={item.quantityOrWeight}
                               onChange={(e) =>
-                                updateMenuItem(cat.id, item.id, { quantityOrWeight: e.target.value })
+                                updateMenuItem(
+                                  resolveSourceCategoryId(item.id, cat.id),
+                                  item.id,
+                                  { quantityOrWeight: e.target.value },
+                                )
                               }
                             />
+                          </td>
+                          <td className="px-2 py-1.5">
+                            <select
+                              className="w-full rounded border border-zinc-300 bg-background px-2 py-1 dark:border-zinc-600"
+                              value={item.portionSize ?? "1"}
+                              onChange={(e) =>
+                                updateMenuItem(resolveSourceCategoryId(item.id, cat.id), item.id, {
+                                  portionSize: e.target.value as "1" | "1/2",
+                                })
+                              }
+                            >
+                              <option value="1">1</option>
+                              <option value="1/2">1/2</option>
+                            </select>
+                          </td>
+                          <td className="px-2 py-1.5">
+                            <select
+                              className="w-full rounded border border-zinc-300 bg-background px-2 py-1 dark:border-zinc-600"
+                              value={item.masa ?? "1"}
+                              aria-label={`Masă pentru ${item.name || "fel"}`}
+                              onChange={(e) =>
+                                updateMenuItem(resolveSourceCategoryId(item.id, cat.id), item.id, {
+                                  masa: e.target.value as "1" | "2",
+                                })
+                              }
+                            >
+                              <option value="1">MASA I</option>
+                              <option value="2">MASA A II-A</option>
+                            </select>
                           </td>
                           <td className="px-2 py-1.5">
                             <input
@@ -139,9 +214,13 @@ export function MenuSelection({ state, addMenuItem, updateMenuItem }: Props) {
                               className="w-full rounded border border-zinc-300 bg-background px-2 py-1 dark:border-zinc-600"
                               value={item.adultPrice || ""}
                               onChange={(e) =>
-                                updateMenuItem(cat.id, item.id, {
-                                  adultPrice: Number(e.target.value) || 0,
-                                })
+                                updateMenuItem(
+                                  resolveSourceCategoryId(item.id, cat.id),
+                                  item.id,
+                                  {
+                                    adultPrice: Number(e.target.value) || 0,
+                                  },
+                                )
                               }
                             />
                           </td>
@@ -151,7 +230,11 @@ export function MenuSelection({ state, addMenuItem, updateMenuItem }: Props) {
                               checked={item.kidsIncluded}
                               aria-label={`Kids pentru ${item.name || "fel"}`}
                               onChange={(e) =>
-                                updateMenuItem(cat.id, item.id, { kidsIncluded: e.target.checked })
+                                updateMenuItem(
+                                  resolveSourceCategoryId(item.id, cat.id),
+                                  item.id,
+                                  { kidsIncluded: e.target.checked },
+                                )
                               }
                             />
                           </td>
@@ -161,7 +244,11 @@ export function MenuSelection({ state, addMenuItem, updateMenuItem }: Props) {
                               checked={item.staffIncluded}
                               aria-label={`Staff pentru ${item.name || "fel"}`}
                               onChange={(e) =>
-                                updateMenuItem(cat.id, item.id, { staffIncluded: e.target.checked })
+                                updateMenuItem(
+                                  resolveSourceCategoryId(item.id, cat.id),
+                                  item.id,
+                                  { staffIncluded: e.target.checked },
+                                )
                               }
                             />
                           </td>

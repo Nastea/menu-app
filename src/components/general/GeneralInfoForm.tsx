@@ -1,6 +1,11 @@
 "use client";
 
-import type { DecorSource, EventFormState, EventSchedule } from "@/types/event";
+import type {
+  DecorSource,
+  EventFormState,
+  EventSchedule,
+  ExternalTableclothOption,
+} from "@/types/event";
 import type { RestaurantId, VoyageHallId } from "@/types/menu";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
@@ -140,10 +145,24 @@ export function GeneralInfoForm({
                     updateField("externalTableCount", Number(e.target.value) || 0)
                   }
                 />
-                <Toggle
-                  label="Fețe de masă de la noi"
-                  checked={state.externalTableclothsFromUs}
-                  onCheckedChange={(v) => updateField("externalTableclothsFromUs", v)}
+                <Select
+                  label="Fețe de masă"
+                  value={state.externalTableclothOption}
+                  onChange={(e) =>
+                    updateField(
+                      "externalTableclothOption",
+                      e.target.value as ExternalTableclothOption,
+                    )
+                  }
+                >
+                  <option value="green">Fețe de masă verzi</option>
+                  <option value="white">Fețe de masă albe</option>
+                  <option value="none">Fără fețe de masă</option>
+                </Select>
+                <Input
+                  label="Firma de decor extern"
+                  value={state.externalDecorCompany}
+                  onChange={(e) => updateField("externalDecorCompany", e.target.value)}
                 />
               </div>
             ) : null}

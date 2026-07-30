@@ -46,6 +46,7 @@ function rowsToCategories(rows: MasterMenuRow[]): MenuCategory[] {
       selected: false,
       name: row.item_name,
       quantityOrWeight: row.quantity_or_weight,
+      portionSize: "1",
       adultPrice: Number(row.adult_price) || 0,
       kidsIncluded: Boolean(row.kids_included),
       staffIncluded: Boolean(row.staff_included),

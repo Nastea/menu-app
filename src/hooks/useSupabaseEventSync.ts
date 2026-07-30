@@ -35,6 +35,10 @@ export type SupabasePersistenceApi = {
 
 export function useSupabaseEventSync(form: UseEventFormReturn): SupabasePersistenceApi {
   const { state, setState } = form;
+  const withTesaliaMainMenuFeeOn = (nextState: typeof state): typeof state =>
+    nextState.restaurant === "tesalia"
+      ? { ...nextState, mainMenuServiceFeeEnabled: true }
+      : nextState;
   const stateRef = useRef(state);
   const [loadLine, setLoadLine] = useState("");
   const [autosaveLine, setAutosaveLine] = useState("");
@@ -112,11 +116,12 @@ export function useSupabaseEventSync(form: UseEventFormReturn): SupabasePersiste
         restaurant: live.restaurant as RestaurantId,
         voyageHall: live.voyageHall as VoyageHallId | "",
       });
-      const blankSnap = getPersistSnapshot(blank);
+      const blankWithDefaults = withTesaliaMainMenuFeeOn(blank);
+      const blankSnap = getPersistSnapshot(blankWithDefaults);
       lastPersistedSnapshotRef.current = blankSnap;
       lastFetchedKeyRef.current = key;
       startTransition(() => {
-        setState(blank);
+        setState(blankWithDefaults);
         setLoadLine("Eveniment șters.");
         setAutosaveLine("");
       });
@@ -169,12 +174,13 @@ export function useSupabaseEventSync(form: UseEventFormReturn): SupabasePersiste
         if (buildMvpEventKey({ date, restaurant, voyageHall }) !== key) return;
 
         if (loaded) {
-          const snap = getPersistSnapshot(loaded);
+          const loadedWithDefaults = withTesaliaMainMenuFeeOn(loaded);
+          const snap = getPersistSnapshot(loadedWithDefaults);
           if (snap !== null) {
             lastPersistedSnapshotRef.current = snap;
           }
           startTransition(() => {
-            setState(loaded);
+            setState(loadedWithDefaults);
             lastFetchedKeyRef.current = key;
             setLoadLine("Încărcat din Supabase.");
           });
@@ -184,12 +190,13 @@ export function useSupabaseEventSync(form: UseEventFormReturn): SupabasePersiste
             restaurant: restaurant as RestaurantId,
             voyageHall: voyageHall as VoyageHallId | "",
           });
-          const snap = getPersistSnapshot(blank);
+          const blankWithDefaults = withTesaliaMainMenuFeeOn(blank);
+          const snap = getPersistSnapshot(blankWithDefaults);
           if (snap !== null) {
             lastPersistedSnapshotRef.current = snap;
           }
           startTransition(() => {
-            setState(blank);
+            setState(blankWithDefaults);
             lastFetchedKeyRef.current = key;
             setLoadLine("Nu există înregistrare — formular nou.");
           });

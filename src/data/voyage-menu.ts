@@ -12,6 +12,7 @@ function item(
     selected: false,
     name,
     quantityOrWeight,
+    portionSize: "1",
     adultPrice,
     kidsIncluded: true,
     staffIncluded: true,

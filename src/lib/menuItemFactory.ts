@@ -7,6 +7,8 @@ export function createEmptyMenuItem(): EditableMenuItem {
     selected: false,
     name: "",
     quantityOrWeight: "",
+    portionSize: "1",
+    masa: "1",
     adultPrice: 0,
     kidsIncluded: true,
     staffIncluded: true,

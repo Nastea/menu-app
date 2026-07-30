@@ -1,4 +1,3 @@
-import { newId } from "@/lib/newId";
 import { getSeedMenuCategories } from "@/lib/initialMenu";
 import type { RestaurantId, VoyageHallId } from "@/types/menu";
 import type { EventFormState } from "@/types/event";
@@ -25,7 +24,8 @@ export function getBlankEventFormState(): EventFormState {
     decor: "",
     decorSource: "internal",
     externalTableCount: 0,
-    externalTableclothsFromUs: false,
+    externalTableclothOption: "none",
+    externalDecorCompany: "",
     advance1: 0,
     advance2: 0,
     eventSchedule: createEmptySchedule(),
@@ -42,7 +42,7 @@ export function getBlankEventFormState(): EventFormState {
     mainMenuServiceFeeEnabled: false,
     previewKids: false,
     previewStaff: false,
-    notes: [{ id: newId("note"), text: "" }],
+    notes: [],
   };
 }
 
@@ -59,9 +59,10 @@ export function getNewEventFormForIdentifiers(params: {
     restaurant: params.restaurant,
     voyageHall: params.restaurant === "voyage" ? params.voyageHall : "",
     menuCategories: getSeedMenuCategories(params.restaurant),
+    mainMenuServiceFeeEnabled: params.restaurant === "tesalia",
     eventSchedule: createEmptySchedule(),
     candyBar: initialCandyBarState(),
     savoryPlatter: initialSavoryPlatterState(),
-    notes: [{ id: newId("note"), text: "" }],
+    notes: [],
   };
 }

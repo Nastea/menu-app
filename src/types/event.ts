@@ -10,6 +10,7 @@ export type ServiceMode = "on_premises" | "external";
 
 /** Decor: intern (reguli pe restaurant) vs. extern (mesele × tarif MDL — calcul ulterior). */
 export type DecorSource = "internal" | "external";
+export type ExternalTableclothOption = "green" | "white" | "none";
 
 /** Minute permise pentru program (UI + validare ulterioară). */
 export type ScheduleMinute = 0 | 30;
@@ -63,8 +64,10 @@ export type EventFormState = {
   decorSource: DecorSource;
   /** Folosit când `decorSource === "external"` — calcul ulterior: × 350 MDL. */
   externalTableCount: number;
-  /** Doar pentru decor extern: fețele de masă sunt furnizate de noi. */
-  externalTableclothsFromUs: boolean;
+  /** Doar pentru decor extern: variantă fețe de masă. */
+  externalTableclothOption: ExternalTableclothOption;
+  /** Doar pentru decor extern: numele firmei de decor. */
+  externalDecorCompany: string;
   /** Avansuri în MDL (intră în calcule). */
   advance1: number;
   advance2: number;

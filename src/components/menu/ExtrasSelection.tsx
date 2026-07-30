@@ -55,12 +55,22 @@ export function ExtrasSelection({ state, updateField }: Props) {
         <h3 className="text-xs font-semibold">Candy Bar</h3>
         <p className="text-xs text-zinc-500">
           Exact {CANDY_BAR_SLOT_COUNT} tipuri de mini-prăjituri + număr total prăjituri. Preț
-          final: pas ulterior.
+          final: pas ulterior. Numărul de prăjituri se completează automat cu adulți × 2, dar
+          rămâne editabil.
         </p>
         <Toggle
           label="Candy Bar activ"
           checked={state.candyBar.enabled}
-          onCheckedChange={(v) => updateField("candyBar", { ...state.candyBar, enabled: v })}
+          onCheckedChange={(v) =>
+            updateField("candyBar", {
+              ...state.candyBar,
+              enabled: v,
+              totalPastriesCount:
+                v && state.candyBar.totalPastriesCount === 0
+                  ? (state.adults || 0) * 2
+                  : state.candyBar.totalPastriesCount,
+            })
+          }
         />
         {SLOT_INDEXES.map((slot) => (
           <Select
@@ -157,7 +167,14 @@ export function ExtrasSelection({ state, updateField }: Props) {
           label="Furșet sărat activ"
           checked={state.savoryPlatter.enabled}
           onCheckedChange={(v) =>
-            updateField("savoryPlatter", { ...state.savoryPlatter, enabled: v })
+            updateField("savoryPlatter", {
+              ...state.savoryPlatter,
+              enabled: v,
+              numberOfPortions:
+                v && state.savoryPlatter.numberOfPortions === 0
+                  ? state.adults || 0
+                  : state.savoryPlatter.numberOfPortions,
+            })
           }
         />
         <Input

@@ -33,7 +33,7 @@ export function Toggle({
         onClick={() => onCheckedChange(!checked)}
         className={clsx(
           "relative h-6 w-10 shrink-0 rounded-full border border-zinc-300 transition-colors dark:border-zinc-600",
-          checked ? "bg-foreground" : "bg-zinc-200 dark:bg-zinc-700",
+          checked ? "bg-emerald-500 dark:bg-emerald-500" : "bg-zinc-200 dark:bg-zinc-700",
         )}
       >
         <span

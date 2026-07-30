@@ -11,6 +11,7 @@ import type {
   DecorSource,
   EventFormState,
   EventSchedule,
+  ExternalTableclothOption,
   NoteLine,
   ServiceMode,
 } from "@/types/event";
@@ -19,7 +20,6 @@ import {
   initialCandyBarState,
   initialSavoryPlatterState,
 } from "@/types/event";
-import { newId } from "@/lib/newId";
 import { buildMvpEventKey } from "@/lib/eventKey";
 
 export type EventsRow = {
@@ -50,7 +50,8 @@ export type EventsRow = {
 export type EventsExtrasPayload = {
   serviceMode: ServiceMode;
   decor: string;
-  externalTableclothsFromUs: boolean;
+  externalTableclothOption: ExternalTableclothOption;
+  externalDecorCompany: string;
   coffeeEnabled: boolean;
   fruitPlatterPortions: number;
   candyBar: CandyBarFormState;
@@ -95,7 +96,8 @@ function defaultExtras(): EventsExtrasPayload {
   return {
     serviceMode: "on_premises",
     decor: "",
-    externalTableclothsFromUs: false,
+    externalTableclothOption: "none",
+    externalDecorCompany: "",
     coffeeEnabled: false,
     fruitPlatterPortions: 0,
     candyBar: initialCandyBarState(),
@@ -117,7 +119,15 @@ function parseExtras(raw: unknown): EventsExtrasPayload {
   return {
     serviceMode: x.serviceMode === "external" ? "external" : "on_premises",
     decor: typeof x.decor === "string" ? x.decor : "",
-    externalTableclothsFromUs: Boolean(x.externalTableclothsFromUs),
+    externalTableclothOption:
+      x.externalTableclothOption === "green" ||
+      x.externalTableclothOption === "white" ||
+      x.externalTableclothOption === "none"
+        ? x.externalTableclothOption
+        : x.externalTableclothsFromUs === true
+          ? "green"
+          : "none",
+    externalDecorCompany: typeof x.externalDecorCompany === "string" ? x.externalDecorCompany : "",
     coffeeEnabled: Boolean(x.coffeeEnabled),
     fruitPlatterPortions: Number(x.fruitPlatterPortions) || 0,
     candyBar: normalizeCandyBar(x.candyBar),
@@ -164,7 +174,7 @@ function parseDbNumeric(value: unknown): number {
 
 function parseNotes(raw: unknown): NoteLine[] {
   if (!Array.isArray(raw) || raw.length === 0) {
-    return [{ id: newId("note"), text: "" }];
+    return [];
   }
   return raw.map((n, i) => ({
     id: typeof n?.id === "string" ? n.id : `note-${i}`,
@@ -179,7 +189,8 @@ export function eventFormStateToUpsertRow(
   const extras: EventsExtrasPayload = {
     serviceMode: state.serviceMode,
     decor: state.decor,
-    externalTableclothsFromUs: state.externalTableclothsFromUs,
+    externalTableclothOption: state.externalTableclothOption,
+    externalDecorCompany: state.externalDecorCompany,
     coffeeEnabled: state.coffeeEnabled,
     fruitPlatterPortions: state.fruitPlatterPortions,
     candyBar: state.candyBar,
@@ -234,7 +245,8 @@ export function eventsRowToEventFormState(row: EventsRow): EventFormState {
     decor: extras.decor,
     decorSource: row.decor_source,
     externalTableCount: row.external_table_count,
-    externalTableclothsFromUs: extras.externalTableclothsFromUs,
+    externalTableclothOption: extras.externalTableclothOption,
+    externalDecorCompany: extras.externalDecorCompany,
     advance1: parseDbNumeric(row.advance_1),
     advance2: parseDbNumeric(row.advance_2),
     eventSchedule: parseProgram(row.program),

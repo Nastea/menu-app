@@ -1,4 +1,5 @@
 import type { EventFormState } from "@/types/event";
+import type { MasaId } from "@/types/menu";
 import { EXTERNAL_DECOR_RATE_PER_TABLE_MDL, TESALIA_INTERNAL_DECOR_EUR } from "@/types/event";
 import { BAR_PACKAGES, NON_ALCOHOL_PACKAGES } from "@/data/bar-packages";
 
@@ -31,10 +32,16 @@ export type SelectedMenuItem = {
   itemId: string;
   itemName: string;
   quantityOrWeight: string;
+  portionSize: "1" | "1/2";
+  masa: MasaId;
   adultPrice: number;
   kidsIncluded: boolean;
   staffIncluded: boolean;
 };
+
+function getPortionFactor(portionSize: "1" | "1/2" | undefined): number {
+  return portionSize === "1/2" ? 0.5 : 1;
+}
 
 export function getSelectedMenuItems(state: EventFormState): SelectedMenuItem[] {
   return state.menuCategories.flatMap((cat) =>
@@ -46,6 +53,8 @@ export function getSelectedMenuItems(state: EventFormState): SelectedMenuItem[] 
         itemId: item.id,
         itemName: item.name,
         quantityOrWeight: item.quantityOrWeight,
+        portionSize: item.portionSize ?? "1",
+        masa: item.masa ?? "1",
         adultPrice: item.adultPrice,
         kidsIncluded: item.kidsIncluded,
         staffIncluded: item.staffIncluded,
@@ -55,20 +64,23 @@ export function getSelectedMenuItems(state: EventFormState): SelectedMenuItem[] 
 
 export function computeTotals(state: EventFormState): TotalsSnapshot {
   const selectedMenuItems = getSelectedMenuItems(state);
-  const menuPerAdult = selectedMenuItems.reduce((acc, item) => acc + (item.adultPrice || 0), 0);
+  const menuPerAdult = selectedMenuItems.reduce(
+    (acc, item) => acc + (item.adultPrice || 0) * getPortionFactor(item.portionSize),
+    0,
+  );
   const menuTotal = menuPerAdult * (state.adults || 0);
   const menuPerChild = selectedMenuItems.reduce((acc, item) => {
     const src = state.menuCategories
       .find((c) => c.id === item.categoryId)
       ?.items.find((i) => i.id === item.itemId);
-    return acc + (src?.kidsIncluded ? (item.adultPrice || 0) * 0.5 : 0);
+    return acc + (src?.kidsIncluded ? (item.adultPrice || 0) * getPortionFactor(item.portionSize) * 0.5 : 0);
   }, 0);
   const childrenTotal = menuPerChild * (state.children || 0);
   const menuPerStaff = selectedMenuItems.reduce((acc, item) => {
     const src = state.menuCategories
       .find((c) => c.id === item.categoryId)
       ?.items.find((i) => i.id === item.itemId);
-    return acc + (src?.staffIncluded ? (item.adultPrice || 0) * 0.5 : 0);
+    return acc + (src?.staffIncluded ? (item.adultPrice || 0) * getPortionFactor(item.portionSize) * 0.5 : 0);
   }, 0);
   const payableStaffCount = state.staffFree10
     ? Math.max((state.staff || 0) - 10, 0)
@@ -84,7 +96,7 @@ export function computeTotals(state: EventFormState): TotalsSnapshot {
     ? (NON_ALCOHOL_PACKAGES.find((p) => p.id === state.nonAlcoholPackageId)?.totalPriceMdl ?? 0)
     : 0;
   const coloredTableclothsTotal =
-    state.decorSource === "external"
+    state.decorSource === "external" && state.externalTableclothOption !== "none"
       ? (state.externalTableCount || 0) * EXTERNAL_DECOR_RATE_PER_TABLE_MDL
       : 0;
   const decorInternalEuro =

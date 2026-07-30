@@ -83,7 +83,8 @@ export function PreviewPanel({ state, updateField }: Props) {
                 {selectedMenuItems.map((item) => (
                   <li key={item.itemId}>
                     {item.categoryName}: {item.itemName || "Fără denumire"}{" "}
-                    {item.quantityOrWeight ? `(${item.quantityOrWeight})` : ""} —{" "}
+                    {item.quantityOrWeight ? `(${item.quantityOrWeight})` : ""} · porții:{" "}
+                    {item.portionSize} —{" "}
                     {formatMoney(item.adultPrice || 0)}
                   </li>
                 ))}

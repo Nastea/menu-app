@@ -10,10 +10,16 @@ export function getDecorSummaryLines(state: EventFormState): string[] {
       n > 0
         ? `Decor extern: ${n} mese × ${EXTERNAL_DECOR_RATE_PER_TABLE_MDL} MDL (total la pasul calcule).`
         : `Introdu numărul de mese; formula: externalTableCount × ${EXTERNAL_DECOR_RATE_PER_TABLE_MDL} MDL.`;
-    const tableclothsLine = state.externalTableclothsFromUs
-      ? "Fețe de masă: furnizate de noi."
-      : "Fețe de masă: nu sunt furnizate de noi.";
-    return ["Decor: sursă externă (fără sumă EUR manuală).", hint, tableclothsLine];
+    const tableclothsLine =
+      state.externalTableclothOption === "green"
+        ? "Fețe de masă: verzi."
+        : state.externalTableclothOption === "white"
+          ? "Fețe de masă: albe."
+          : "Fețe de masă: fără fețe de masă.";
+    const companyLine = state.externalDecorCompany.trim()
+      ? `Firmă decor extern: ${state.externalDecorCompany.trim()}.`
+      : "Firmă decor extern: necompletată.";
+    return ["Decor: sursă externă (fără sumă EUR manuală).", hint, tableclothsLine, companyLine];
   }
 
   if (state.restaurant === "tesalia") {

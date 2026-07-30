@@ -5,6 +5,7 @@ import type { MenuCategory, RestaurantId } from "@/types/menu";
 import { getSeedMenuCategories } from "@/lib/initialMenu";
 import { getSupabaseBrowserClient } from "@/lib/supabase";
 import { loadMasterMenu, saveMasterMenu } from "@/lib/masterMenuDb";
+import { newId } from "@/lib/newId";
 
 export default function MasterMenuPage() {
   const AUTOSAVE_MS = 1200;
@@ -66,6 +67,48 @@ export default function MasterMenuPage() {
           : {
               ...cat,
               items: cat.items.map((item) => (item.id !== itemId ? item : { ...item, adultPrice })),
+            },
+      ),
+    );
+  };
+
+  const updateItemField = (
+    categoryId: string,
+    itemId: string,
+    patch: Partial<MenuCategory["items"][number]>,
+  ) => {
+    setCategories((prev) =>
+      prev.map((cat) =>
+        cat.id !== categoryId
+          ? cat
+          : {
+              ...cat,
+              items: cat.items.map((item) => (item.id !== itemId ? item : { ...item, ...patch })),
+            },
+      ),
+    );
+  };
+
+  const addItemToCategory = (categoryId: string) => {
+    setCategories((prev) =>
+      prev.map((cat) =>
+        cat.id !== categoryId
+          ? cat
+          : {
+              ...cat,
+              items: [
+                ...cat.items,
+                {
+                  id: newId(`master-${restaurant}`),
+                  selected: false,
+                  name: "Fel nou",
+                  quantityOrWeight: "",
+                  portionSize: "1",
+                  adultPrice: 0,
+                  kidsIncluded: true,
+                  staffIncluded: true,
+                },
+              ],
             },
       ),
     );
@@ -133,7 +176,16 @@ export default function MasterMenuPage() {
 
       {categories.map((cat) => (
         <section key={cat.id} className="rounded-xl bg-zinc-50/70 p-4 dark:bg-zinc-900/40">
-          <h2 className="mb-2 text-sm font-semibold">{cat.name}</h2>
+          <div className="mb-2 flex items-center justify-between gap-2">
+            <h2 className="text-sm font-semibold">{cat.name}</h2>
+            <button
+              type="button"
+              onClick={() => addItemToCategory(cat.id)}
+              className="rounded-md border border-zinc-300 px-2 py-1 text-xs hover:bg-zinc-100 dark:border-zinc-600 dark:hover:bg-zinc-800"
+            >
+              + Fel nou
+            </button>
+          </div>
           <div className="overflow-x-auto rounded-md border border-zinc-200 dark:border-zinc-700">
             <table className="min-w-full text-xs">
               <thead className="bg-zinc-100/90 text-zinc-600 dark:bg-zinc-900/70 dark:text-zinc-300">
@@ -149,8 +201,24 @@ export default function MasterMenuPage() {
                     key={item.id}
                     className="border-t border-zinc-200 bg-white/90 dark:border-zinc-800 dark:bg-zinc-950/40"
                   >
-                    <td className="px-2 py-1.5">{item.name}</td>
-                    <td className="px-2 py-1.5">{item.quantityOrWeight || "—"}</td>
+                    <td className="px-2 py-1.5">
+                      <input
+                        className="w-full rounded border border-zinc-300 bg-background px-2 py-1 dark:border-zinc-600"
+                        value={item.name}
+                        onChange={(e) =>
+                          updateItemField(cat.id, item.id, { name: e.target.value })
+                        }
+                      />
+                    </td>
+                    <td className="px-2 py-1.5">
+                      <input
+                        className="w-full rounded border border-zinc-300 bg-background px-2 py-1 dark:border-zinc-600"
+                        value={item.quantityOrWeight}
+                        onChange={(e) =>
+                          updateItemField(cat.id, item.id, { quantityOrWeight: e.target.value })
+                        }
+                      />
+                    </td>
                     <td className="px-2 py-1.5">
                       <input
                         type="number"

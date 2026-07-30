@@ -6,7 +6,7 @@ import type { EditableMenuItem } from "@/types/menu";
 import type { RestaurantId } from "@/types/menu";
 import type { EventFormState, EventSchedule, NoteLine } from "@/types/event";
 import { getBlankEventFormState } from "@/lib/eventFormDefaults";
-import { getSeedMenuCategories } from "@/lib/initialMenu";
+import { ensureBreadIsSelected, getSeedMenuCategories } from "@/lib/initialMenu";
 import { createEmptyMenuItem } from "@/lib/menuItemFactory";
 import { newId } from "@/lib/newId";
 import { getSupabaseBrowserClient } from "@/lib/supabase";
@@ -26,9 +26,8 @@ export type UseEventFormReturn = {
     patch: Partial<EditableMenuItem>,
   ) => void;
   removeMenuItem: (categoryId: string, itemId: string) => void;
-  addNoteLine: () => void;
+  addNoteLine: (text: string) => void;
   removeNoteLine: (id: string) => void;
-  updateNoteLineText: (id: string, text: string) => void;
 };
 
 export function useEventForm(): UseEventFormReturn {
@@ -48,6 +47,25 @@ export function useEventForm(): UseEventFormReturn {
           if (fruitWasAutoSynced) {
             next.fruitPlatterPortions = nextAdults;
           }
+          const previousCandyAutoCount = prev.adults * 2;
+          const candyWasAutoSynced =
+            prev.candyBar.totalPastriesCount === previousCandyAutoCount ||
+            prev.candyBar.totalPastriesCount === 0;
+          if (candyWasAutoSynced) {
+            next.candyBar = {
+              ...prev.candyBar,
+              totalPastriesCount: nextAdults * 2,
+            };
+          }
+          const savoryWasAutoSynced =
+            prev.savoryPlatter.numberOfPortions === prev.adults ||
+            prev.savoryPlatter.numberOfPortions === 0;
+          if (prev.savoryPlatter.enabled && savoryWasAutoSynced) {
+            next.savoryPlatter = {
+              ...prev.savoryPlatter,
+              numberOfPortions: nextAdults,
+            };
+          }
         }
         return next;
       });
@@ -61,6 +79,7 @@ export function useEventForm(): UseEventFormReturn {
       restaurant,
       voyageHall: restaurant === "voyage" ? prev.voyageHall : "",
       menuCategories: restaurant ? getSeedMenuCategories(restaurant) : [],
+      mainMenuServiceFeeEnabled: restaurant === "tesalia",
     }));
 
     if (!restaurant) return;
@@ -73,7 +92,7 @@ export function useEventForm(): UseEventFormReturn {
 
       setState((prev) => {
         if (prev.restaurant !== restaurant) return prev;
-        return { ...prev, menuCategories: categories };
+        return { ...prev, menuCategories: ensureBreadIsSelected(categories) };
       });
     })();
   }, []);
@@ -126,27 +145,19 @@ export function useEventForm(): UseEventFormReturn {
     }));
   }, []);
 
-  const addNoteLine = useCallback(() => {
+  const addNoteLine = useCallback((text: string) => {
+    const trimmed = text.trim();
+    if (!trimmed) return;
     setState((prev) => ({
       ...prev,
-      notes: [...prev.notes, { id: newId("note"), text: "" } satisfies NoteLine],
+      notes: [...prev.notes, { id: newId("note"), text: trimmed } satisfies NoteLine],
     }));
   }, []);
 
   const removeNoteLine = useCallback((id: string) => {
-    setState((prev) => {
-      const filtered = prev.notes.filter((n) => n.id !== id);
-      return {
-        ...prev,
-        notes: filtered.length > 0 ? filtered : [{ id: newId("note"), text: "" }],
-      };
-    });
-  }, []);
-
-  const updateNoteLineText = useCallback((id: string, text: string) => {
     setState((prev) => ({
       ...prev,
-      notes: prev.notes.map((n) => (n.id === id ? { ...n, text } : n)),
+      notes: prev.notes.filter((n) => n.id !== id),
     }));
   }, []);
 
@@ -166,6 +177,5 @@ export function useEventForm(): UseEventFormReturn {
     removeMenuItem,
     addNoteLine,
     removeNoteLine,
-    updateNoteLineText,
   };
 }

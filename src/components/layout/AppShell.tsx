@@ -26,7 +26,6 @@ export function AppShell({ form, persistence }: Props) {
     updateMenuItem,
     addNoteLine,
     removeNoteLine,
-    updateNoteLineText,
   } = form;
 
   return (
@@ -55,7 +54,6 @@ export function AppShell({ form, persistence }: Props) {
             state={state}
             addNoteLine={addNoteLine}
             removeNoteLine={removeNoteLine}
-            updateNoteLineText={updateNoteLineText}
           />
           <AdvancesCard state={state} updateField={updateField} />
           <TotalsCard state={state} />
