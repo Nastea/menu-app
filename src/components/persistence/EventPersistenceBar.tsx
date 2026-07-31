@@ -68,7 +68,7 @@ export function EventPersistenceBar({ state, persistence }: Props) {
           {deleteArmed ? "Confirmă ștergerea" : "Șterge"}
         </Button>
         <Button variant="secondary" className="py-1.5 text-xs" onClick={onPrintDocument}>
-          Print
+          Meniu selectat
         </Button>
         <a
           href="/master-menu"
