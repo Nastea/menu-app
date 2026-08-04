@@ -1,6 +1,7 @@
 import type { EventFormState } from "@/types/event";
 import type { MasaId } from "@/types/menu";
 import { computeTotals, getSelectedMenuItems, type SelectedMenuItem } from "@/lib/calculations";
+import { getIngredients } from "@/data/menu-ingredients";
 
 export const PRINT_SNAPSHOT_KEY = "tesalia_print_snapshot_v1";
 
@@ -45,9 +46,13 @@ function effectivePrice(item: SelectedMenuItem): number {
 }
 
 function menuRow(item: SelectedMenuItem): string {
+  const ingredients = getIngredients(item.itemName || "");
+  const nameCell = ingredients
+    ? `${esc(item.itemName || "—")}<div class="ingredients">${esc(ingredients)}</div>`
+    : esc(item.itemName || "—");
   return `
         <tr>
-          <td>${esc(item.itemName || "—")}</td>
+          <td>${nameCell}</td>
           <td>${esc(item.quantityOrWeight || "—")}</td>
           <td class="num">${esc(formatLei(effectivePrice(item)))}</td>
         </tr>`;
@@ -100,13 +105,14 @@ export function buildPrintHtml(state: EventFormState): string {
     h2 { font-size: 13px; margin: 18px 0 6px; text-transform: uppercase; letter-spacing: .05em; }
     td, th { font-size: 12px; line-height: 1.35; }
     .muted { color: #666; }
+    .ingredients { font-size: 11px; color: #666; font-style: italic; margin-top: 2px; }
     table { width: 100%; border-collapse: collapse; margin-top: 4px; table-layout: fixed; }
-    th, td { border: 1px solid #d9d9d9; padding: 6px 8px; text-align: left; vertical-align: top; }
-    th { background: #f3f4f6; font-weight: 700; }
+    th, td { padding: 6px 8px; text-align: left; vertical-align: top; }
+    thead th { border-bottom: 1px solid #d9d9d9; font-weight: 700; }
     td:nth-child(2), th:nth-child(2) { width: 26%; }
     .num { text-align: right; white-space: nowrap; width: 20%; }
     .total { margin-top: 12px; }
-    .total td { font-weight: 700; background: #f8fafc; }
+    .total td { font-weight: 700; border-top: 1px solid #d9d9d9; }
     @page { size: A4; margin: 14mm; }
   </style>
 </head>
